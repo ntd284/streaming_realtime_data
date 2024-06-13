@@ -31,7 +31,7 @@ def format_data(res):
     data['registered_date'] = res['registered']['date']
     data['phone'] = res['phone']
     data['picture'] = res['picture']['medium']
-
+    print(data)
     return data
 
 def stream_data():
@@ -64,4 +64,3 @@ with DAG('kafka_automation',\
         task_id = 'stream_data_from_api',
         python_callable = stream_data
     )
-# stream_data()

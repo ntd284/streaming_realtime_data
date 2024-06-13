@@ -7,27 +7,17 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-     - "2181:2181"
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    healthcheck:
-      test: ['CMD', 'bash', '-c', "echo 'ruok' | nc localhost 2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - confluent
-
-
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.4.0
     hostname: schema-registry
     container_name: schema-registry
-    depends_on:
-      broker:
-        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
@@ -36,21 +26,11 @@ services:
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     networks:
       - confluent
-    healthcheck:
-      test: ['CMD','curl','-f','http://localhost:8081']
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.4.0
     hostname: control-center
     container_name: control-center
-    depends_on:
-      broker:
-        condition: service_healthy
-      schema-registry:
-        condition: service_healthy
     ports:
       - "9021:9021"
     environment:
@@ -64,20 +44,12 @@ services:
       PORT: 9021
     networks:
       - confluent
-    healthcheck:
-      test: ['CMD','curl','-f','http://localhost:9021/health' ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   broker:
     image: confluentinc/cp-server:7.4.0
     hostname: broker
     container_name: broker
     platform: linux/amd64
-    depends_on:
-      zookeeper:
-        condition: service_healthy
     ports:
       - "9092:9092"
       - "9101:9101"
@@ -86,27 +58,22 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter #specifies the class name of the metric reporter to be used.-> which is a confluent-specific metrics reporter.
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # This sets the replication factor for the `__consumer_offsets` topic, which stored consumer group offsets. set to `1`, meaning where will be only one replica of this topic.
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # this sets the initial delay in miliseconds before a group starts rebalancing. It's set to `0`, meaning there is no delay
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1 # This sets the replication factor for the confluent license topic. It's also set to `1`.
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1 #this setes the replication factor for the confluent balancer topic, which is set to `1`.
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1 #this sets the minimum in-sync replicas (ISR) for the transaction state log topic. It's set to `1`, meaning only one replica needs to be in sync.
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 #THis sets the replication factor for the transaction state log topic. It is set to `1`.
-      KAFKA_JMX_PORT: 9101 #This specifies the port on which the JMX (Java Management Extensions) server will listen for connections. It's set to 9101.
-      KAFKA_JMX_HOSTNAME: localhost #This specifies the hostname for the JMX server. It's set to `localhost`
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema_registry:8081 #This specifies the URL for the Confluent Schema Registry, which is used for managing Avro schemas.
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092 #This specifies the bootstrap servers for the Confluent metrics reporter. It's set to broker:29092, indicating the broker is running on the host "broker" on port 29092.
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1 #this sets the number of replicas for the Confluent metrics reporter topic. It's set to 1.
-      CONFLUENT_METRICS_ENABLE: 'false' #This specifies whether Confluent metrics are enabled. It's set to 'false', meaning Confluent metrics are disabled.
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous' #This is a placeholder for the customer ID in Confluent's support system. It's set to 'anonymous'.
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:29092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'false'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
     networks:
       - confluent
-    healthcheck:
-      test: ['CMD','bash','-c','nc -z localhost 9092']
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   webserver:
     image: apache/airflow:2.6.0-python3.9
@@ -129,19 +96,13 @@ services:
       - ./requirements.txt:/opt/airflow/requirements.txt
     ports:
       - "8080:8080"
-    healthcheck:
-      test: ['CMD-SHELL',"[ -f /opt/airflow/airflow-webserver.pid ]"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
     networks:
       - confluent
 
   scheduler:
     image: apache/airflow:2.6.0-python3.9
     depends_on:
-      webserver:
-        condition: service_healthy
+      - webserver
     volumes:
       - ./dags:/opt/airflow/dags
       - ./script/entrypoint.sh:/opt/airflow/script/entrypoint.sh
@@ -150,13 +111,15 @@ services:
       - LOAD_EX=n
       - EXECUTOR=Sequential
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AIRFLOW_WEBSERVER_SECRET_KEY=this_is_a
+      - AIRFLOW_WEBSERVER_SECRET_KEY=this_is_a_very_secured_key
     command: bash -c "pip install -r ./requirements.txt && airflow db upgrade && airflow scheduler"
     networks:
       - confluent
 
   postgres:
     image: postgres:14.0
+    ports:
+      - 5433:5432
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=airflow
@@ -173,7 +136,7 @@ services:
     command: bin/spark-class org.apache.spark.deploy.master.Master
     ports:
       - "9090:8080"
-      - "7077:7077" #worker comminicate with master
+      - "7077:7077"
     networks:
       - confluent
 
@@ -186,10 +149,10 @@ services:
       SPARK_MODE: worker
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 1g
-      SPARK_MASTER_URL: sparkL://spark-master:7077
+      SPARK_MASTER_URL: spark://spark-master:7077
     networks:
       - confluent
-      
+
   cassandra_db:
     image: cassandra:latest
     container_name: cassandra
@@ -201,14 +164,8 @@ services:
       - HEAP_NEWSIZE=100M
       - CASSANDRA_USERNAME=cassandra
       - CASSANDRA_PASSWORD=cassandra
-
     networks:
       - confluent
 
 networks:
   confluent:
-
-
-
-
-
