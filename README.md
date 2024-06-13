@@ -100,3 +100,6 @@ python3 spark-streaming.py
 docker exec -it cassandra cqlsh -u cassandra -p cassandra localhost 9042
 ```
 
+<p align="center">
+  <img src="images/cassandra.png" alt="Wallpaper">
+</p>
