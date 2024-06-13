@@ -90,7 +90,7 @@ python3 spark-streaming.py
   <img src="images/airflow.png" alt="Wallpaper">
 </p>
 
-9- Access to control center UI monitor Topic health, Procuder and consumer performance, Offset, Cluster health: `localhost:9021`
+9- Access to `control center UI` monitor Topic health, Procuder and consumer performance, Offset, Cluster health: `localhost:9021`
 
 <p align="center">
   <img src="images/control-center.png" alt="Wallpaper">
