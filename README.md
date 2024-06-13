@@ -78,6 +78,13 @@ docker compose version
 docker compose up -d
 ```
 
+Check containers in docker desktop:
+
+<p align="center">
+  <img src="images/docker_desktop.png" alt="Wallpaper">
+</p>
+
+
 7- Run step by step files:
 
 ```
