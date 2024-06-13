@@ -25,3 +25,78 @@ The project aims to establish a real-time data analysis system for capturing and
 - <b>Comprehensive Monitoring:</b> Tools to monitor data stream health and resolve issues promptly.
 - <b>Business Integration:</b> Real-time insights integrated into business applications for immediate action.
 - <b>Data-Driven Decisions:</b> Providing stakeholders with timely, actionable insights for informed decision-making.
+
+## Getting Started
+
+###  Project file:
+
+- `kafka_stream.py`: [kafka_stream.py](dags/kafka_stream.py) is created to fetches user data from [Api_randomuser](https://randomuser.me), processes and streams into a Kafka topic named `user_created`. The DAG in <b>Apache Airflow</b> employs PythonOperator to handle the task execution. 
+
+- `spark-streaming.py`:  [spark-streaming.py](spark-streaming.py) is builded to create `cassandra_keyspace`, `cassandra_table`, `cassandra_connection`, `spark_connection`, `connect_to_kafka` and interation between them.
+
+### Running project:
+
+1- Clone the repository:
+
+```
+git clone https://github.com/ntd284/streaming_realtime_data.git
+```
+
+2- Navigate to the project directory
+
+```
+cd streaming_realtime_data
+```
+
+3- Set Up a Virtual Environment in Python
+
+```
+pip3 install virtualenv
+python3 -m venv venv
+source venv/bin/activate
+```
+
+4- Install the needed packages and libraries:
+
+```
+pip3 install -r ./requirements.txt
+```
+
+5- Install Docker, Docker compose:
+
+```
+sudo ./installdocker.sh
+docker --version
+docker compose version
+```
+
+6- Build docker:
+
+```
+docker compose up -d
+```
+
+7- Run step by step files:
+
+```
+python3 spark-streaming.py
+```
+
+8- Access to airflow UI to monitor streaming process: `localhost:8080` with account: `admin`, password: `admin`
+
+<p align="center">
+  <img src="images/airflow.png" alt="Wallpaper">
+</p>
+
+9- Access to control center UI monitor Topic health, Procuder and consumer performance, Offset, Cluster health: `localhost:9021`
+
+<p align="center">
+  <img src="images/control-center.png" alt="Wallpaper">
+</p>
+
+10- Check data in `Cassandra` with command:
+
+```
+docker exec -it cassandra cqlsh -u cassandra -p cassandra localhost 9042
+```
+
