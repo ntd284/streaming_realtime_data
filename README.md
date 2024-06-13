@@ -1,6 +1,6 @@
 # Transforming User Insights: Real-Time Data Analysis with Kafka, Spark, PostgreSQL, Docker and Cassandra
 
-My linkedin: [tuanduong284](linkedin.com/in/tuanduong284)
+My linkedin: [tuanduong284](https://linkedin.com/in/tuanduong284)
 
 In today's data-driven world, real-time data analysis is crucial for businesses to make informed decisions swiftly. Our processing system harness <b>Kafka</b>, <b>Spark</b>, <b>PostgreSQL</b>, <b>Docker</b> and <b>Cassandra</b>.
 
